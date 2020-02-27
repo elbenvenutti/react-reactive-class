@@ -8,10 +8,15 @@ export default function createReactiveClass(tag) {
       this.displayName = `ReactiveElement-${tag}`;
       this.state = pickProps(props, (key, value) => !isRxObservable(value));
       this.state.mount = true;
+      this.inputRef = tag === 'input' && props['autofocusonmount'] ? React.createRef() : null;
     }
 
     UNSAFE_componentWillMount() {
       this.subscribe(this.props);
+    }
+
+    componentDidMount() {
+      if(this.inputRef) this.inputRef.focus();
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
@@ -63,6 +68,9 @@ export default function createReactiveClass(tag) {
       }
 
       const finalProps = pickProps(this.state, (key) => key !== 'mount');
+
+      if(this.inputRef) finalProps.ref = this.inputRef;
+
       return React.createElement(tag, finalProps);
     }
   }
